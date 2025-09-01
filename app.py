@@ -110,7 +110,9 @@ def segment_img(img: Image):
     segmented_img.paste(img, mask=Image.fromarray(sam_mask))
     return segmented_img
 
+
 def segment_6imgs(zero123pp_imgs):
+    # Original 12 crops
     imgs = [
         zero123pp_imgs.crop([0, 0, 320, 320]),
         zero123pp_imgs.crop([320, 0, 640, 320]),
@@ -126,21 +128,26 @@ def segment_6imgs(zero123pp_imgs):
         zero123pp_imgs.crop([960, 640, 1280, 960]),
     ]
 
+    # Resize each crop to fit 640x640 final image
+    resized_imgs = [img.resize((160, 213)) for img in imgs]
+
     segmented_imgs = []
-    for i, img in enumerate(imgs):
+    for img in resized_imgs:
         output = rembg.remove(img)
         mask = numpy.array(output)[:, :, 3]
         mask = SAMAPI.segment_api(numpy.array(img)[:, :, :3], mask)
-        data = numpy.array(img)[:,:,:3]
+        data = numpy.array(img)[:, :, :3]
         data[mask == 0] = [255, 255, 255]
         segmented_imgs.append(data)
-    result = numpy.concatenate([
-        numpy.concatenate([segmented_imgs[0], segmented_imgs[1], segmented_imgs[2], segmented_imgs[3]], axis=1),
-        numpy.concatenate([segmented_imgs[4], segmented_imgs[5], segmented_imgs[6], segmented_imgs[7]], axis=1),
-        numpy.concatenate([segmented_imgs[8], segmented_imgs[9], segmented_imgs[10], segmented_imgs[11]], axis=1),
-    ])
+
+    # Concatenate 4x3 grid
+    row1 = numpy.concatenate(segmented_imgs[0:4], axis=1)
+    row2 = numpy.concatenate(segmented_imgs[4:8], axis=1)
+    row3 = numpy.concatenate(segmented_imgs[8:12], axis=1)
+    result = numpy.concatenate([row1, row2, row3], axis=0)
 
     return Image.fromarray(result)
+
 
 
 def expand2square(pil_img, background_color):
