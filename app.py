@@ -110,14 +110,22 @@ def segment_img(img: Image):
     segmented_img.paste(img, mask=Image.fromarray(sam_mask))
     return segmented_img
 
-
 def segment_6imgs(zero123pp_imgs):
-    imgs = [zero123pp_imgs.crop([0, 0, 320, 320]),
-            zero123pp_imgs.crop([320, 0, 640, 320]),
-            zero123pp_imgs.crop([0, 320, 320, 640]),
-            zero123pp_imgs.crop([320, 320, 640, 640]),
-            zero123pp_imgs.crop([0, 640, 320, 960]),
-            zero123pp_imgs.crop([320, 640, 640, 960])]
+    imgs = [
+        zero123pp_imgs.crop([0, 0, 320, 320]),
+        zero123pp_imgs.crop([320, 0, 640, 320]),
+        zero123pp_imgs.crop([640, 0, 960, 320]),
+        zero123pp_imgs.crop([960, 0, 1280, 320]),
+        zero123pp_imgs.crop([0, 320, 320, 640]),
+        zero123pp_imgs.crop([320, 320, 640, 640]),
+        zero123pp_imgs.crop([640, 320, 960, 640]),
+        zero123pp_imgs.crop([960, 320, 1280, 640]),
+        zero123pp_imgs.crop([0, 640, 320, 960]),
+        zero123pp_imgs.crop([320, 640, 640, 960]),
+        zero123pp_imgs.crop([640, 640, 960, 960]),
+        zero123pp_imgs.crop([960, 640, 1280, 960]),
+    ]
+
     segmented_imgs = []
     for i, img in enumerate(imgs):
         output = rembg.remove(img)
@@ -127,10 +135,11 @@ def segment_6imgs(zero123pp_imgs):
         data[mask == 0] = [255, 255, 255]
         segmented_imgs.append(data)
     result = numpy.concatenate([
-        numpy.concatenate([segmented_imgs[0], segmented_imgs[1]], axis=1),
-        numpy.concatenate([segmented_imgs[2], segmented_imgs[3]], axis=1),
-        numpy.concatenate([segmented_imgs[4], segmented_imgs[5]], axis=1)
+        numpy.concatenate([segmented_imgs[0], segmented_imgs[1], segmented_imgs[2], segmented_imgs[3]], axis=1),
+        numpy.concatenate([segmented_imgs[4], segmented_imgs[5], segmented_imgs[6], segmented_imgs[7]], axis=1),
+        numpy.concatenate([segmented_imgs[8], segmented_imgs[9], segmented_imgs[10], segmented_imgs[11]], axis=1),
     ])
+
     return Image.fromarray(result)
 
 
